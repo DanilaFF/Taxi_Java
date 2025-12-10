@@ -7,6 +7,12 @@ public class Taxi implements Runnable {
     private volatile boolean running = true;
     private RideRequest currentRequest;
     private final Dispatcher dispatcher;
+    // Константы времени для симуляции
+    private static final long BASE_TO_CLIENT_DELAY_MS = 200;
+    private static final long TIME_PER_UNIT_TO_CLIENT_MS = 20;
+    private static final long BASE_TRIP_DELAY_MS = 300;
+    private static final long TIME_PER_UNIT_TRIP_MS = 30;
+    
     public Taxi(int id, int startX, int startY, Dispatcher dispatcher) {
         this.id = id;
         this.x = startX;
@@ -72,13 +78,13 @@ public class Taxi implements Runnable {
                 toClientDist = Math.abs(request.getFromX() - x) + Math.abs(request.getFromY() - y);
             }
             log("получил " + request + ", еду к клиенту (расстояние " + toClientDist + ")");
-            sleepSim(200 + toClientDist * 20L);
+            sleepSim(BASE_TO_CLIENT_DELAY_MS + toClientDist * TIME_PER_UNIT_TO_CLIENT_MS);
             // Перевозим клиента
             int tripDist = Math.abs(request.getToX() - request.getFromX())
                     + Math.abs(request.getToY() - request.getFromY());
             log("везу клиента, расстояние " + tripDist);
             long start = System.currentTimeMillis();
-            sleepSim(300 + tripDist * 30L);
+            sleepSim(BASE_TRIP_DELAY_MS + tripDist * TIME_PER_UNIT_TRIP_MS);
             long end = System.currentTimeMillis();
 
             // Обновляем координаты такси в конце поездки
@@ -87,9 +93,10 @@ public class Taxi implements Runnable {
                 y = request.getToY();
                 currentRequest = null;
             }
-            dispatcher.onRideCompleted(this, request, end - start);
+            // Считаем полное время (с момента создания заказа)
+            long totalTime = end - request.getCreatedAt();
+            dispatcher.onRideCompleted(this, request, end - start, totalTime);
         }
-
         log("останавливается");
     }
     private void sleepSim(long millis) {

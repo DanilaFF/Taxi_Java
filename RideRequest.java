@@ -32,10 +32,15 @@ public class RideRequest {
     public long getCreatedAt() {
         return createdAt;
     }
+    // Проверка что маршрут не нулевой
+    public boolean isValidTrip() {
+        return !(fromX == toX && fromY == toY);
+    }
+    public int getTripDistance() {
+        return Math.abs(toX - fromX) + Math.abs(toY - fromY);
+    }
     @Override
     public String toString() {
-        return "Request#" + id +
-                " from(" + fromX + "," + fromY + ")" +
-                " to(" + toX + "," + toY + ")";
+        return "Request#" + id + " from(" + fromX + "," + fromY + ")" + " to(" + toX + "," + toY + ")";
     }
 }
